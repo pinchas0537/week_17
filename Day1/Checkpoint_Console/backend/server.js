@@ -1,7 +1,14 @@
 import express from "express"
+import cors from "cors"
 import {getMessage, login, postMessage, status} from "./cntrl.js"
+
 const app = express()
+
 const port = 3000
+
+app.use(cors({
+    exposedHeaders:["Authorization"]
+}))
 
 app.use(express.json())
 
