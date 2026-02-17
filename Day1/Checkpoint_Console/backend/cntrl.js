@@ -3,22 +3,23 @@ import jwt from "jsonwebtoken"
 import { config } from "dotenv"
 config()
 
-export function login(req, res) {
+export function login (req, res) {
     const { userName, password } = req.body
+    if(!userName|| !password) return res.status(400).json({err:"Missing requird fields"})
     const user = OPERATORS.find((operator) => {
         return operator.username === userName && operator.password === password
     })
     if (user !== undefined) {
-        const token = jwt.sign({ userName: user.username, id: user.id, role: user.role }, process.env.JWT_SERVER)
+        const token = jwt.sign({ userName: user.username, id: user.id, role: user.role }, process.env.JWT_SECRET)
         return res.setHeader("Authorization", token).json({ operator: { id: user.id, name: user.name, role: user.role } })
     } else {
-        return res.send("userName or password is invalid!")
+        return res.status(401).json({messages:"userName or password is invalid!"})
     }
 }
 
 export function status(req, res) {
     const token = req.header("Authorization")
-    const tokenVerify = jwt.verify(token, process.env.JWT_SERVER)
+    const tokenVerify = jwt.verify(token, process.env.JWT_SECRET)
     if (tokenVerify) {
         return res.json({
             checkpoint: CHECKPOINT_STATUS.checkpoint,
@@ -34,7 +35,7 @@ export function status(req, res) {
 
 export function getMessage(req, res) {
     const token = req.header("Authorization")
-    const tokenVerify = jwt.verify(token, process.env.JWT_SERVER)
+    const tokenVerify = jwt.verify(token, process.env.JWT_SECRET)
     if (tokenVerify) {
         const messages = INITIAL_MESSAGES.find(m => m.from.id === tokenVerify.id)
         if (messages !== undefined) {
@@ -50,7 +51,7 @@ export function getMessage(req, res) {
 export function postMessage(req, res) {
     const token = req.header("Authorization")
     const { text } = req.body
-    const tokenVerify = jwt.verify(token, process.env.JWT_SERVER)
+    const tokenVerify = jwt.verify(token, process.env.JWT_SECRET)
     if (tokenVerify) {
         const obj = {
             id: "msg_" + 100 + INITIAL_MESSAGES.length + 1,
